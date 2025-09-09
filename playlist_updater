@@ -1,0 +1,41 @@
+import requests
+import re
+import os
+
+# === CONFIG ===
+GITHUB_TOKEN = os.environ["GIST_TOKEN"]  # GitHub Actions secret
+GIST_ID = "1c47bd493dc9694b33823264c3117764"
+
+channels = {
+    "Ictimai TV": "https://www.canlitv.me/live/ictimaitv-canli-hd",
+    "Real TV": "https://www.canlitv.me/live/real-tv-hd"
+}
+
+pattern = re.compile(r'(https?://[^\s"\']+\.m3u8[^\s"\']*)')
+
+def generate_playlist():
+    playlist = "#EXTM3U\n\n"
+    for name, url in channels.items():
+        r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        match = pattern.search(r.text)
+        if match:
+            m3u8_url = match.group(0)
+            print(f"[OK] {name} -> {m3u8_url}")
+            playlist += f'#EXTINF:-1,{name}\n{m3u8_url}\n\n'
+        else:
+            print(f"[ERROR] No stream found for {name}")
+    return playlist
+
+def update_gist(content):
+    url = f"https://api.github.com/gists/{GIST_ID}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    data = {"files": {"myplaylist.m3u": {"content": content}}}
+    response = requests.patch(url, json=data, headers=headers)
+    if response.status_code == 200:
+        print("[✓] Gist updated successfully!")
+    else:
+        print("[✗] Failed to update gist:", response.text)
+
+if __name__ == "__main__":
+    new_playlist = generate_playlist()
+    update_gist(new_playlist)
