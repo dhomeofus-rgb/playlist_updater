@@ -1,0 +1,27 @@
+name: Update Playlist
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # Runs every 6 hours
+  workflow_dispatch:        # Allows manual run from GitHub Actions tab
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run playlist updater
+        env:
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+        run: python playlist_updater.py
