@@ -24,4 +24,4 @@ jobs:
       - name: Run playlist updater
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
-        run: python playlist_updater.py
+        run: python playlist_updater/playlist_updater.py
